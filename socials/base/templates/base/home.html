@@ -1,0 +1,395 @@
+<!-- {% extends 'main.html' %} -->
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'styles/home.scss' %}" />
+
+<!-- Icons -->
+<link rel="stylesheet" href="https://unicons.iconscout.com/release/v2.1.6/css/unicons.css">
+
+<!-- Font-awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css"
+  integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A=="
+  crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<style>
+  #heart.red {
+    color: red;
+  }
+</style>
+
+{% endblock %}
+
+<!-- Title -->
+{% block title %}
+<title>Dashboard</title>
+{% endblock %}
+
+{% block content %}
+<nav>
+  <div class="container">
+    <div class="log">
+      <img src="{% static 'images/comrade.png' %}" style="height:70px;cursor:pointer;">
+    </div>
+
+    <!-- Search bar -->
+    <form action="/search" method="POST">
+      {% csrf_token %}
+      <div class="search-bar">
+        <input type="search" placeholder="Search for other users" name="username">
+        <button type="submit"><i class="uil uil-search"></i> </button>
+      </div>
+    </form>
+
+
+    <div class="create">
+      {% if user.is_authenticated %}
+      <a href="{% url 'logout' %}">logout</a>
+      {% else %}
+      <a href="{% url 'signup' %}">Signup</a>
+      <a href="{% url 'login' %}">Login</a>
+      {% endif %}
+      <button class="btn btn-primary">
+        <a href="{% url 'add_post' %}" style="color: #fff;text-decoration: none;">Create Post</a>
+      </button>
+      <div class="profile-photo" style="cursor:pointer;">
+        <a class="profile" href="{% url 'show_profile_page' user.profile.id %}" style="text-decoration: none;">
+          <img src="{{user_profile.profileimg.url}}" alt="profile-photo">
+        </a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+
+<main style="background-color:rgb(244, 234, 234); padding-top: 40px;">
+  <div class="container">
+    <div class="left">
+      {% if user.is_authenticated %}
+
+      <a class="profile" href="{% url 'show_profile_page' user.profile.id %}" style="text-decoration: none;">
+        <div class="profile-photo" style="cursor:pointer;">
+          <img src="{{user_profile.profileimg.url}}" alt="profile-1">
+        </div>
+        <div class="handle">
+          <h4 style="text-decoration: none;">{{user_profile.fname}}</h4>
+          <p class="text-muted">
+            {{user_profile.username}}
+          </p>
+        </div>
+      </a>
+
+      {% endif %}
+      <!-- sidebar -->
+      <div class="sidebar">
+        <a class="menu-item active" href="{% url 'home' %}" style="text-decoration: none;">
+          <span style="margin-top: 20px;"><i class="uil uil-home"></i></span>
+          <h3 style="margin-top: 20px;">Home</h3>
+        </a>
+        <a class="menu-item" href="{% url 'add_post' %}" style="text-decoration: none;">
+          <span style="margin-top: 20px;"><i class="uil uil-compass"></i></span>
+          <h3 style="margin-top: 20px;">
+            Add Post
+          </h3>
+        </a>
+
+        <a class="menu-item" href="{% url 'edit_profile_page' user.profile.id %}" style="text-decoration: none;">
+          <span style="margin-top: 20px;"><i class="uil uil-edit"></i></span>
+          <h3 style="margin-top: 20px;">Edit Profile</h3>
+        </a>
+
+
+        <a class="menu-item" href="{% url 'show_profile_page' user.profile.id %}" style="text-decoration: none;">
+          <span style="margin-top: 20px;"><i class="uil uil-bookmark"></i></span>
+          <h3 style="margin-top: 20px;">Profile</h3>
+        </a>
+
+        <a class="menu-item" href="/password" style="text-decoration: none;">
+          <span style="margin-top: 20px;"><i class="uil uil-lock"></i></span>
+          <h3 style="margin-top: 20px;">Change Password</h3>
+        </a>
+      </div>
+      <!-- end of sidebar -->
+      <button class="btn btn-primary">
+        <a href="{% url 'add_post' %}" style="color: #fff;text-decoration: none;">Create Post</a>
+      </button>
+    </div>
+    <!-- END OF LEFT -->
+
+    <div class="middle">
+      <!-- FEED -->
+      <div class="feeds">
+        <!-- FEED 1 -->
+        {% if count_posts == 0 %}
+        <div class="empty-state">
+          <div class="empty-state__content">
+            <div class="empty-state__icon">
+              <img src="{% static 'images/home/not-found.webp' %}" alt="">
+            </div>
+            <div class="empty-state__message"
+              style="color: #9a35dd;font-weight: bold;font-size: 30px; text-align: center;">No posts has been added yet.
+            </div>
+            <br /><br /><br />
+          </div>
+        </div>
+        {% else %}
+        {% for post in all_posts reversed %}
+        <div class="feed">
+          <div class="head">
+            <div class="user">
+              <div class="profile-photo">
+                <a href="{% url 'show_profile_page' post.profileid %}">
+                  <img src="{{ post.get_owner_pp }}" alt="profile-13" style="width:50px;">
+                </a>
+              </div>
+              <div class="ingo">
+                <h3>{{ post.author }}</h3>
+                <small>{{ post.location }}</small>
+              </div>
+
+            </div>
+            <span class="edit">
+              <!-- <i class="uil uil-ellipsis-h"> -->
+              <ul>
+                <li>
+                  <!-- Edit post -->
+                  {% if user.is_authenticated %}
+                  {% if user.id == post.author.id %}
+                  <a href="{% url 'update_post' post.pk %}" class="pencil-icon"><i class="fa-solid fa-pencil"></i></a>
+                  &nbsp;&nbsp;
+                  <!-- Delete post -->
+                  <a href="{% url 'delete_post' post.pk %}" class="delete-icon"><i
+                      class="fa-solid fa-trash-arrow-up"></i></a>
+                  {% endif %}
+                  {% endif %}
+                </li>
+              </ul>
+              <!-- </i> -->
+
+            </span>
+
+          </div>
+          <div class="caption">
+            <p> {{ post.caption|safe }}</p>
+          </div>
+          <div class="photo">
+            <a href="{{ post.image.url }}">
+              <img src="{{ post.image.url }}" alt="feed-1" style="height: 450px;">
+            </a>
+          </div>
+          <div class="action-buttons">
+            <div class="interaction-buttons">
+              <!-- Like post -->
+              <a href="/like-post?post_id={{post.id}}" style="text-decoration: none;">
+                <i class="fa-solid fa-arrow-alt-circle-up" id="heart"></i>
+              </a>
+              <a href="{% url 'add_comment' post.pk %}" style="color: #000;">
+                <span><i class="uil uil-check-circle"></i></span>
+              </a>
+
+            </div>
+
+            <!-- Downloading th post-img -->
+            <a href="{{post.image.url}}" class="flex items-center space-x-2 flex-1 justify-end"
+              style="text-decoration: none;" download>
+              <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true"
+                role="img" width="25" height="25" preserveAspectRatio="xMidYMid meet" viewBox="0 0 16 16">
+                <g fill="currentColor">
+                  <path
+                    d="M8.5 1.5A1.5 1.5 0 0 1 10 0h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2a2 2 0 0 1 2-2h6c-.314.418-.5.937-.5 1.5v6h-2a.5.5 0 0 0-.354.854l2.5 2.5a.5.5 0 0 0 .708 0l2.5-2.5A.5.5 0 0 0 10.5 7.5h-2v-6z" />
+                </g>
+              </svg>
+            </a>
+          </div>
+
+          <!-- Like section -->
+          <div class="liked-by">
+            {% if post.no_of_likes == 0 %}
+            <p><b>No Upvotes</b></p>
+            {% else %}
+            <p><b>Upvotes by {{post.no_of_likes}} People</b></p>
+            {% endif %}
+          </div>
+
+
+
+          <a data-bs-toggle="modal" data-bs-target="#staticBackdrop" style="cursor: pointer;">
+            View all solutions
+          </a>
+
+          <!-- Modal -->
+          <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+            aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="staticBackdropLabel">Comments</h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+
+                  {% if not post.comments.all %}
+                  No Solution yet.. <a href="{% url 'add_comment' post.pk %}">Add Solution</a>
+                  {% else %}
+                  {% for comment in post.comments.all %}
+                  <strong>{{ comment.name }}-{{ comment.date_added }}</strong>
+                  <br />
+                  {{ comment.body }}
+                  <br />
+                  <div class="photo">
+                    <a href="{{ comment.image }}">
+                      <img src="{{ comment.image }}" alt="feed-1" style="height: 250px;">
+                    </a>
+                  </div>
+                  <br />
+                  <hr>
+                  {% endfor %}
+                  {% endif %}
+
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {% endfor %}
+        {% endif %}
+
+      </div>
+    </div>
+    <div class="right">
+      <div class="friend-requests">
+        <h4 style="color:rgb(107,76,230)">Peer Suggestions</h4>
+        <div class="request">
+          <div class="ingo">
+            {% for user in suggestion_users %}
+            <a style="text-decoration: none;" href="{% url 'show_profile_page' user.id %}">
+              <div class="profile-photo">
+                <img src="{{ user.profileimg.url }}">
+
+              </div>
+              <div>
+                <h5>{{user.fname}} {{user.lname}}</h5>
+                <p class="text-muted">
+                  {{user.description}}
+                </p>
+
+              </div>
+              <hr>
+            </a>
+
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+</div>
+
+<script type="text/javascript">
+
+  (function () {
+    const heart = document.getElementById('heart');
+    heart.addEventListener('click', function () {
+      heart.classList.toggle('red');
+    });
+  })();
+
+</script>
+{% endblock %}
+
+<div class="ProfileViewDetails_programmer-profiles-scroll__jRsvi" style="cursor: auto;">
+  <div class="ProfileViewDetails_profile-card-new__GogmJ"
+    style="background-color: rgb(253, 233, 181); cursor: grabbing;"><img alt=""
+      srcset="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fleetcode-card.71833cd8.png&amp;w=384&amp;q=75 1x, /_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fleetcode-card.71833cd8.png&amp;w=640&amp;q=75 2x"
+      src="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fleetcode-card.71833cd8.png&amp;w=640&amp;q=75" width="307"
+      height="334" decoding="async" data-nimg="1" class="ProfileViewDetails_github-card-img__uoPT9" loading="lazy"
+      style="color: transparent;">
+    <div class="ProfileViewDetails_card-stats__Yzw65">
+      <div class="ProfileViewDetails_card-heading___3WcF" style="color: rgb(204, 120, 3);">Leetcode <img alt="leetcode"
+          srcset="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fleetcode.cadfaad1.png&amp;w=32&amp;q=75 1x, /_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fleetcode.cadfaad1.png&amp;w=48&amp;q=75 2x"
+          src="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fleetcode.cadfaad1.png&amp;w=48&amp;q=75" width="24"
+          height="24" decoding="async" data-nimg="1" loading="lazy" style="color: transparent;"></div>
+      <div>
+        <div class="ProfileViewDetails_card-field2__xRrnp"><img alt=""
+            srcset="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fuser.d13f2213.png&amp;w=32&amp;q=75 1x, /_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fuser.d13f2213.png&amp;w=48&amp;q=75 2x"
+            src="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fuser.d13f2213.png&amp;w=48&amp;q=75" width="20"
+            height="20" decoding="async" data-nimg="1" class="ProfileViewDetails_card-field-image__8m_BZ" loading="lazy"
+            style="color: transparent;">ID - rohit_rohit_0705<img alt=""
+            srcset="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fexternal-link2.6d42a429.png&amp;w=32&amp;q=75 1x, /_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fexternal-link2.6d42a429.png&amp;w=48&amp;q=75 2x"
+            src="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fexternal-link2.6d42a429.png&amp;w=48&amp;q=75" width="18"
+            height="18" decoding="async" data-nimg="1" loading="lazy" style="color: transparent; margin-left: 5px;">
+        </div>
+        <div class="ProfileViewDetails_card-field2__xRrnp"><img alt=""
+            srcset="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Frating.33c0dc40.png&amp;w=32&amp;q=75 1x, /_next/image?url=%2F_next%2Fstatic%2Fmedia%2Frating.33c0dc40.png&amp;w=48&amp;q=75 2x"
+            src="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Frating.33c0dc40.png&amp;w=48&amp;q=75" width="20"
+            height="20" decoding="async" data-nimg="1" class="ProfileViewDetails_card-field-image__8m_BZ" loading="lazy"
+            style="color: transparent;">reputation - 29</div>
+        <div class="ProfileViewDetails_card-field2__xRrnp"><img alt=""
+            srcset="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flaptop.e5ab3e63.png&amp;w=32&amp;q=75 1x, /_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flaptop.e5ab3e63.png&amp;w=48&amp;q=75 2x"
+            src="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Flaptop.e5ab3e63.png&amp;w=48&amp;q=75" width="20"
+            height="20" decoding="async" data-nimg="1" class="ProfileViewDetails_card-field-image__8m_BZ" loading="lazy"
+            style="color: transparent;">Ranking- 127695</div>
+        <div class="ProfileViewDetails_card-field2__xRrnp"><img alt=""
+            srcset="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fbrain.4d97dac8.png&amp;w=32&amp;q=75 1x, /_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fbrain.4d97dac8.png&amp;w=48&amp;q=75 2x"
+            src="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fbrain.4d97dac8.png&amp;w=48&amp;q=75" width="20"
+            height="20" decoding="async" data-nimg="1" class="ProfileViewDetails_card-field-image__8m_BZ" loading="lazy"
+            style="color: transparent;">Problems Solved - 345</div>
+        <div class="ProfileViewDetails_card-field2__xRrnp"><img alt=""
+            srcset="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fresume.7813e558.png&amp;w=32&amp;q=75 1x, /_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fresume.7813e558.png&amp;w=48&amp;q=75 2x"
+            src="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fresume.7813e558.png&amp;w=48&amp;q=75" width="20"
+            height="20" decoding="async" data-nimg="1" class="ProfileViewDetails_card-field-image__8m_BZ" loading="lazy"
+            style="color: transparent;">Submissions - 191</div>
+      </div>
+    </div>
+  </div>
+  <div class="ProfileViewDetails_profile-card-new__GogmJ" style="background-color: rgb(30, 30, 30); cursor: grabbing;">
+    <img alt=""
+      srcset="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fgithub-card.31793d00.png&amp;w=384&amp;q=75 1x, /_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fgithub-card.31793d00.png&amp;w=640&amp;q=75 2x"
+      src="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fgithub-card.31793d00.png&amp;w=640&amp;q=75" width="307"
+      height="336" decoding="async" data-nimg="1" class="ProfileViewDetails_github-card-img__uoPT9" loading="lazy"
+      style="color: transparent;">
+    <div class="ProfileViewDetails_card-stats__Yzw65">
+      <div class="ProfileViewDetails_card-heading___3WcF">GitHub <img alt=""
+          srcset="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fgithub.7fd166b5.png&amp;w=32&amp;q=75 1x, /_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fgithub.7fd166b5.png&amp;w=48&amp;q=75 2x"
+          src="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fgithub.7fd166b5.png&amp;w=48&amp;q=75" width="24"
+          height="24" decoding="async" data-nimg="1" loading="lazy" style="color: transparent;"></div>
+      <div>
+        <div class="ProfileViewDetails_card-field__FH0kN"><img alt=""
+            srcset="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fuser.436e9268.png&amp;w=32&amp;q=75 1x, /_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fuser.436e9268.png&amp;w=48&amp;q=75 2x"
+            src="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fuser.436e9268.png&amp;w=48&amp;q=75" width="20"
+            height="20" decoding="async" data-nimg="1" class="ProfileViewDetails_card-field-image__8m_BZ" loading="lazy"
+            style="color: transparent;">ID - rohitrohit0705<img alt=""
+            srcset="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2FexternalLink.fa5549dc.png&amp;w=16&amp;q=75 1x, /_next/image?url=%2F_next%2Fstatic%2Fmedia%2FexternalLink.fa5549dc.png&amp;w=32&amp;q=75 2x"
+            src="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2FexternalLink.fa5549dc.png&amp;w=32&amp;q=75" width="16"
+            height="16" decoding="async" data-nimg="1" loading="lazy" style="color: transparent; margin-left: 5px;">
+        </div>
+        <div class="ProfileViewDetails_card-field__FH0kN"><img alt=""
+            srcset="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Frepo.a9a1cb42.png&amp;w=32&amp;q=75 1x, /_next/image?url=%2F_next%2Fstatic%2Fmedia%2Frepo.a9a1cb42.png&amp;w=48&amp;q=75 2x"
+            src="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Frepo.a9a1cb42.png&amp;w=48&amp;q=75" width="20"
+            height="20" decoding="async" data-nimg="1" class="ProfileViewDetails_card-field-image__8m_BZ" loading="lazy"
+            style="color: transparent;">Repositories - 19</div>
+        <div class="ProfileViewDetails_card-field__FH0kN"><img alt=""
+            srcset="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fstar.9cc49ce5.png&amp;w=32&amp;q=75 1x, /_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fstar.9cc49ce5.png&amp;w=48&amp;q=75 2x"
+            src="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fstar.9cc49ce5.png&amp;w=48&amp;q=75" width="20"
+            height="20" decoding="async" data-nimg="1" class="ProfileViewDetails_card-field-image__8m_BZ" loading="lazy"
+            style="color: transparent;">Pull Requests- 1</div>
+        <div class="ProfileViewDetails_card-field__FH0kN"><img alt=""
+            srcset="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fbranch.c0de9493.png&amp;w=32&amp;q=75 1x, /_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fbranch.c0de9493.png&amp;w=48&amp;q=75 2x"
+            src="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fbranch.c0de9493.png&amp;w=48&amp;q=75" width="20"
+            height="20" decoding="async" data-nimg="1" class="ProfileViewDetails_card-field-image__8m_BZ" loading="lazy"
+            style="color: transparent;">Commits - 92</div>
+        <div class="ProfileViewDetails_card-field__FH0kN"><img alt=""
+            srcset="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fstar.9cc49ce5.png&amp;w=32&amp;q=75 1x, /_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fstar.9cc49ce5.png&amp;w=48&amp;q=75 2x"
+            src="/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fstar.9cc49ce5.png&amp;w=48&amp;q=75" width="20"
+            height="20" decoding="async" data-nimg="1" class="ProfileViewDetails_card-field-image__8m_BZ" loading="lazy"
+            style="color: transparent;">Stars - 4</div>
+      </div>
+    </div>
+  </div>
+</div>

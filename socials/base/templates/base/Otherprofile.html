@@ -1,0 +1,128 @@
+{% extends 'main.html' %}
+{% load static %}
+
+{% block styles %}
+<link rel="stylesheet" href="{% static 'styles/otherprofile.css' %}" />
+{% endblock %}
+
+<!-- Title -->
+{% block title %}
+<title>Profile</title>
+{% endblock %}
+
+{% block content %}
+
+<div class="container" style="margin-top:20px;">
+    <div class="row m-b-r m-t-3" style="margin-top:40px;">
+        <div class="col-md-2 offset-md-1">
+            <img src="{{ page_user.profileimg.url }}" alt="profileimg" class="img-circle rounded-circle img-fluid"
+                style="height: 180px; width: 150px;">
+        </div>
+        <div class="col-md-9 p-t-2" style="margin-top:20px;">
+            <h2 class="h2-responsive">@{{page_user.username}} </h2>
+            <form action="/follow" method="POST">
+                {% csrf_token %}
+                <input type="hidden" value="{{page_user.username}}" name="user" />
+                <input type="hidden" value="{{request.user.username}}" name="follower" />
+
+                {% if page_user.id != request.user.id %}
+                <a data-ripple="">
+                    <button type="submit" class="btn btn-success follow-btn"
+                        style="position: relative;left: 300px; bottom: 40px;">{{button_text}}</button></h2>
+                </a>
+                {% endif %}
+
+                <p class="profile-name">{{page_user.fname}}</p>
+                <p style="position: relative;left: 20px;">{{page_user.description}}</p>
+                <ul class="flex-menu">
+
+                    <li><strong>{{num_posts}}</strong> posts</li>
+                    <li><strong>{{user_followers}}</strong> followers</li>
+                    <li><strong>{{user_following}}</strong> following</li>
+
+                </ul>
+
+            </form>
+        </div>
+    </div>
+    <div class="leetcode" style="margin-left: 500px; margin-bottom: 50px;">
+        <img src="https://res.cloudinary.com/practicaldev/image/fetch/s--75kJZZQg--/c_imagga_scale,f_auto,fl_progressive,h_420,q_auto,w_1000/https://assets.leetcode.com/static_assets/public/images/LeetCode_Sharing.png"
+            class="img-fluid cursor-pointer" alt="" style="height: 80px;">
+        <div margin-top: 30px;>
+            <span class="status-value" id="leetcode-count">-</span>
+            <span class="status-value" id="leetcode-count"> / </span>
+            <span class="status-value" id="leetcode-total" style="margin-right: 50px;"> - </span>
+            <span class="status-text"> Leetcode Problems Solved</span>
+        </div>
+        <div>
+            <span class="status-value" id="leetcode-easy" style="margin-right: 50px;"> - </span>
+            <span class="status-text"> Easy Problems Solved</span>
+        </div>
+        <div>
+            <span class="status-value" id="leetcode-medium" style="margin-right: 50px;"> - </span>
+            <span class="status-text"> Medium Problems Solved</span>
+        </div>
+        <div>
+            <span class="status-value" id="leetcode-hard" style="margin-right: 50px;"> - </span>
+            <span class="status-text"> Hard Problems Solved</span>
+        </div>
+    </div>
+
+
+
+
+    <script src="https://cdn.rawgit.com/IonicaBizau/github-calendar/gh-pages/dist/github-calendar.min.js">
+    </script>
+
+    <!-- Optionally, include the theme (if you don't want to struggle to write the CSS) -->
+    <link rel="stylesheet"
+        href="https://cdn.rawgit.com/IonicaBizau/github-calendar/gh-pages/dist/github-calendar.css" />
+
+    <!-- Prepare a container for your calendar. -->
+    <div class="calendar">
+        <!-- Loading stuff -->
+        Loading the data just for you.
+    </div>
+
+    <script>
+        new GitHubCalendar(".calendar", "rohitrohit0705");
+    </script>
+
+    <hr class="border border-1 border-success">
+
+    <div class="row">
+        {% for post in logged_in_user_posts %}
+        <div class="col-sm-12 col-md-6 col-lg-4">
+            <div class="view overlay hm-black-light m-b-2">
+                <a href="{{post.image.url}}">
+                    <img src="{{post.image.url}}" class="img-fluid cursor-pointer" alt="" style="height: 250px;">
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+<script>
+
+
+    const leetcodeApiUrl = 'https://leetcode-stats-api.herokuapp.com/rohit_rohit_0705';
+
+    fetch(leetcodeApiUrl)
+        .then(response => response.json())
+        .then(data => {
+            const leetcodeCount = data.totalSolved;
+            const totcount = data.totalQuestions;
+            const easy = data.easySolved;
+            const medium = data.mediumSolved;
+            const hard = data.hardSolved;
+
+            document.getElementById('leetcode-count').textContent = leetcodeCount;
+            document.getElementById('leetcode-total').textContent = totcount;
+            document.getElementById('leetcode-easy').textContent = easy;
+            document.getElementById('leetcode-medium').textContent = medium;
+            document.getElementById('leetcode-hard').textContent = hard;
+        })
+        .catch(error => console.error(error));
+</script>
+{% endblock %}
